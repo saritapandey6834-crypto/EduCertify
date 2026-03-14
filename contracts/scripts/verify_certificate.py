@@ -59,13 +59,3 @@ if result:
 else:
     print('RESULT: INVALID — Certificate not found or has been revoked.')
 ```
-
-4. Commit message:
-```
-Add verify_certificate.py script
-```
-5. Extended description:
-```
-Python script that hashes a certificate PDF and verifies 
-it against the EduCertify smart contract on Sepolia.
-Sends 0.001 ETH as the DeFi verification fee.
