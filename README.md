@@ -73,4 +73,4 @@ MIT
 
 6. Commit message:
 ```
-Update README with project description and setup instructions
+Fix README remove extra text
