@@ -70,7 +70,3 @@ python scripts/verify_certificate.py certificate.pdf
 ## License
 MIT
 ```
-
-6. Commit message:
-```
-Fix README remove extra text
