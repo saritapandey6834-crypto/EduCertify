@@ -53,7 +53,3 @@ receipt = w3.eth.wait_for_transaction_receipt(tx_hash)
 print(f'Confirmed in block: {receipt.blockNumber}')
 print('Certificate successfully issued on-chain!')
 ```
-
-4. In the **Commit message** box type:
-```
-Add issue_certificate.py script
