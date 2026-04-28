@@ -1,17 +1,20 @@
-import hashlib
+import hashlib, unittest
 
-def hash_bytes(data: bytes) -> str:
-    return '0x' + hashlib.sha256(data).hexdigest()
+class TestHashing(unittest.TestCase):
 
-assert hash_bytes(b'Clark University degree') == hash_bytes(b'Clark University degree')
-print('Test 1 passed: identical content produces identical hash')
+    def test_hash_length(self):
+        digest = hashlib.sha256(b'Test content').digest()
+        self.assertEqual(len(digest), 32)
 
-hash_a = hash_bytes(b'Clark University degree')
-hash_b = hash_bytes(b'Clark University Degree')
-assert hash_a != hash_b
-print('Test 2 passed: changed content produces different hash')
+    def test_hash_determinism(self):
+        h1 = hashlib.sha256(b'Test content').digest()
+        h2 = hashlib.sha256(b'Test content').digest()
+        self.assertEqual(h1, h2)
 
-assert len(hash_bytes(b'test')) == 66
-print('Test 3 passed: hash length is correct')
+    def test_hash_sensitivity(self):
+        h1 = hashlib.sha256(b'Certificate A').digest()
+        h2 = hashlib.sha256(b'Certificate B').digest()
+        self.assertNotEqual(h1, h2)
 
-print('All tests passed!')
+if __name__ == '__main__':
+    unittest.main()
