@@ -1,61 +1,40 @@
-"""
-verify_certificate.py
-Verifies whether a certificate PDF is registered and valid on-chain.
-
-Usage:
-    python verify_certificate.py certificate_to_check.pdf
-"""
-
-import hashlib
-import json
-import sys
+import hashlib, json
 from web3 import Web3
 
-# ── Configuration (fill these in after deployment) ──────────────
-INFURA_URL    = 'https://sepolia.infura.io/v3/YOUR_INFURA_PROJECT_ID'
-CONTRACT_ADDR = '0xYOUR_DEPLOYED_CONTRACT_ADDRESS'
-VERIFIER_ADDR = '0xYOUR_METAMASK_WALLET_ADDRESS'
-PRIVATE_KEY   = 'YOUR_PRIVATE_KEY'  # Never share this!
-
-# ── Connect ──────────────────────────────────────────────────────
-w3 = Web3(Web3.HTTPProvider(INFURA_URL))
+RPC_URL       = 'https://sepolia.infura.io/v3/YOUR_PROJECT_ID'
+CONTRACT_ADDR = '0x259Dd38221e099329A6f08Eb9e136B58E42D0A5e'
+PRIVATE_KEY   = 'EMPLOYER_PRIVATE_KEY'
 
 with open('abi/EduCertify_abi.json') as f:
-    abi = json.load(f)
-contract = w3.eth.contract(address=CONTRACT_ADDR, abi=abi)
+    ABI = json.load(f)
 
-# ── Hash the PDF ─────────────────────────────────────────────────
-def hash_pdf(filepath):
+w3       = Web3(Web3.HTTPProvider(RPC_URL))
+account  = w3.eth.account.from_key(PRIVATE_KEY)
+contract = w3.eth.contract(address=CONTRACT_ADDR, abi=ABI)
+
+def hash_file(filepath):
+    h = hashlib.sha256()
     with open(filepath, 'rb') as f:
-        return '0x' + hashlib.sha256(f.read()).hexdigest()
+        for chunk in iter(lambda: f.read(4096), b''):
+            h.update(chunk)
+    return h.digest()
 
-cert_file = sys.argv[1]
-cert_hash = hash_pdf(cert_file)
-print(f'Verifying hash: {cert_hash}')
+cert_hash = hash_file('received_certificate.pdf')
 
-# ── Read fee and verify ──────────────────────────────────────────
-fee = contract.functions.verificationFee().call()
-print(f'Verification fee: {w3.from_wei(fee, "ether")} ETH')
-
-nonce = w3.eth.get_transaction_count(VERIFIER_ADDR)
 tx = contract.functions.verifyCertificate(cert_hash).build_transaction({
-    'from':     VERIFIER_ADDR,
-    'value':    fee,
-    'nonce':    nonce,
-    'gas':      80000,
-    'gasPrice': w3.to_wei('20', 'gwei'),
+    'from':  account.address,
+    'nonce': w3.eth.get_transaction_count(account.address),
+    'gas':   80_000,
+    'gasPrice': w3.eth.gas_price,
+    'value': w3.to_wei(0.001, 'ether'),
 })
-
-signed_tx = w3.eth.account.sign_transaction(tx, private_key=PRIVATE_KEY)
-tx_hash   = w3.eth.send_raw_transaction(signed_tx.raw_transaction)
+signed  = w3.eth.account.sign_transaction(tx, PRIVATE_KEY)
+tx_hash = w3.eth.send_raw_transaction(signed.rawTransaction)
 w3.eth.wait_for_transaction_receipt(tx_hash)
 
 result = contract.functions.verifyCertificate(cert_hash).call(
-    {'from': VERIFIER_ADDR, 'value': fee}
+    {'value': w3.to_wei(0.001, 'ether')}
 )
+print('VALID' if result else 'INVALID')
 
-if result:
-    print('RESULT: VALID — Certificate is registered and has not been revoked.')
-else:
-    print('RESULT: INVALID — Certificate not found or has been revoked.')
 ```
