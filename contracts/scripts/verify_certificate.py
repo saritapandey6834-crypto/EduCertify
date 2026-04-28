@@ -1,7 +1,7 @@
 import hashlib, json
 from web3 import Web3
 
-RPC_URL       = 'https://sepolia.infura.io/v3/YOUR_PROJECT_ID'
+RPC_URL       = 'https://sepolia.infura.io/v3/YOUR_PROJECT_ID' ##Not adding it right now
 CONTRACT_ADDR = '0x259Dd38221e099329A6f08Eb9e136B58E42D0A5e'
 PRIVATE_KEY   = 'EMPLOYER_PRIVATE_KEY'
 
